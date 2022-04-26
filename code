@@ -1,0 +1,131 @@
+
+const Alexa = require('ask-sdk-core');
+
+const ACTIONS=[
+         'paper',
+         'rock',
+         'scissors'
+    ]
+const LaunchRequestHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
+    },
+    handle(handlerInput) {
+        const speechText = 'Welcome to Rock Paper Scissors ,I hope you will enjoy it ,are you ready , Say yes to continue';
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+const gameIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'gameIntent';
+    },
+    handle(handlerInput) {
+        let speechText = '';
+       
+    
+        let reprompt =' whats yours  draw?';
+        const actionn=handlerInput.requestEnvelope.request.intent.slots.actionn.value;
+        const alexaAction=ACTIONS[Math.floor(Math.random()*ACTIONS.length-1)]
+        const combo = actionn+alexaAction
+        switch(combo)
+        {
+            case 'rockrock':
+                speechText+='you took rock and i take rock,it is a tie!';
+                
+                break;
+            case 'rockpaper':
+                speechText+='you took rock and i take paper,I win!';
+                break;
+            case 'rockscissors':
+                speechText+='you took rock and i take scissors,you win!';
+                break;
+                case 'paperrock':
+                    speechText+='you took paper and i take rock,you win!';
+                break;
+                case 'paperpaper':
+                    speechText+='you took paper and i take paper,it is a tie!';
+                break;
+                case 'paperscissors':
+                    speechText+='you took paper and i take scissors,I win!';
+                break;
+                case 'scissorsrock':
+                    speechText+='you took scissors and i take rock,I win!';
+                break;
+                case 'sissorspaper':
+                    speechText+='you took scissors and i take paper,you win!';
+                break;
+                case 'scissorsscissors':
+                    speechText+='you took scissors and i take scissors,it is a tie!';
+                break;
+                default:
+                 break;
+        }
+        
+         const attributes = handlerInput.attributesManager.getSessionAttributes();
+        attributes.lastResult = speechText;
+        handlerInput.attributesManager.setSessionAttributes(attributes);
+        
+        return handlerInput.responseBuilder
+            .speak(speechText + reprompt)
+            .reprompt(reprompt)
+            .getResponse();
+    }
+};
+const HelpIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
+    },
+    handle(handlerInput) {
+        const speechText = 'You Asked for help and I will do it , as you have started the game you can choose either Rock or Paper Or Scissor . To choose Rock say Rock , To choose paper say Paper , to choose Scissor say scissors.  ';
+
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+
+
+
+
+const RepeatIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.RepeatIntent';
+    },
+    handle(handlerInput) {
+        let speechText=" ";
+        
+        const attributes = handlerInput.attributesManager.getSessionAttributes();
+        
+        if(attributes.lastResult){
+            speechText = "I said " + attributes.lastResult + " you can say ok to contiue the game";
+        }
+        handlerInput.attributesManager.setSessionAttributes(attributes);
+
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+
+
+exports.handler = Alexa.SkillBuilders.custom()
+    .addRequestHandlers(
+        LaunchRequestHandler,
+        gameIntentHandler,
+        HelpIntentHandler,
+        RepeatIntentHandler,
+        CancelAndStopIntentHandler,
+        SessionEndedRequestHandler,
+        
+        IntentReflectorHandler) // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
+    .addErrorHandlers(
+        ErrorHandler)
+    .lambda();
